@@ -1,20 +1,11 @@
-import pandas as pd
+# 1. Join FA index to Geo FA city index on column ID
+joined_df_1 = pd.merge(fa_index_df, geo_fa_city_index_df, on='ID', how='inner')
 
-# Sample data
-data = {
-    'FA MSID': [101, 102, 101, 102, 103, 104],
-    'Date Posted': ['01/01/2023', '01/02/2023', '01/03/2023', '01/04/2023', '01/05/2023', '01/06/2023'],
-    'Outcome': ['Assigned', 'Not Assigned', 'Assigned', 'Assigned', 'Assigned', 'Not Assigned']
-}
-df = pd.DataFrame(data)
+# 2. Join the resulting table to reinvestment dashboard import on MS ID
+joined_df_2 = pd.merge(joined_df_1, reinvestment_dashboard_df, on='MS ID', how='inner')
 
-# Convert the 'Date Posted' column to datetime type with specified format
-df['Date Posted'] = pd.to_datetime(df['Date Posted'], format='%m/%d/%Y')
+# 3. Join the resulting table to region index based on the shared column called state
+final_joined_df = pd.merge(joined_df_2, region_index_df, on='state', how='inner')
 
-# Filter rows where Outcome is 'Assigned'
-assigned_df = df[df['Outcome'] == 'Assigned']
-
-# Group by 'FA MSID' and get the last date of assignment for each FA
-result = assigned_df.groupby('FA MSID')['Date Posted'].max().reset_index()
-
-print(result)
+# The final_joined_df now contains the result of all the joins
+print(final_joined_df)
