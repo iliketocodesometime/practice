@@ -1,0 +1,20 @@
+import pandas as pd
+
+# Sample data
+data = {
+    'FA MSID': [101, 102, 101, 102, 103, 104],
+    'Date Posted': ['01/01/2023', '01/02/2023', '01/03/2023', '01/04/2023', '01/05/2023', '01/06/2023'],
+    'Outcome': ['Assigned', 'Not Assigned', 'Assigned', 'Assigned', 'Assigned', 'Not Assigned']
+}
+df = pd.DataFrame(data)
+
+# Convert the 'Date Posted' column to datetime type with specified format
+df['Date Posted'] = pd.to_datetime(df['Date Posted'], format='%m/%d/%Y')
+
+# Filter rows where Outcome is 'Assigned'
+assigned_df = df[df['Outcome'] == 'Assigned']
+
+# Group by 'FA MSID' and get the last date of assignment for each FA
+result = assigned_df.groupby('FA MSID')['Date Posted'].max().reset_index()
+
+print(result)
