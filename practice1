@@ -8,7 +8,7 @@ grabPeers2 <- function(subindustry = '', Industry = '', sector = '', marketCap =
     }
 
     if (!is.na(companyRank) && companyRank <= 20) {
-        myBnds <- calcBounds(companyRank, nrow(dsESPP))
+        myBnds <- calc_Bounds(companyRank, nrow(dsESPP), mySampleSize)
         dsSample <- dsESPP[myBnds[1]:myBnds[2], ]
         dsSample <- dsSample %>% filter(MarketCap != marketCap) # Exclude the input company based on MarketCap if it's in the dataset
     } else {
@@ -25,10 +25,22 @@ grabPeers2 <- function(subindustry = '', Industry = '', sector = '', marketCap =
         if (nrow(dsSample) < mySampleSize) {
             print("Insufficient Peers to benchmark against!")
         } else {
-            myBnds <- calcBounds(1, nrow(dsSample)) # Use 1 as a placeholder since it's not specific to a company
+            myBnds <- calc_Bounds(1, nrow(dsSample), mySampleSize) # Use 1 as a placeholder since it's not specific to a company
             dsSample <- dsSample[myBnds[1]:myBnds[2], ]
         }
     }
     
     return(dsSample)
+}
+
+
+calc_Bounds <- function(x, rowcnt, sampleSize = 10) {
+  midPoint <- sampleSize/2
+  if (x + floor(midPoint) > rowcnt) {
+    return (c(rowcnt - sampleSize + 1, rowcnt))
+  } else if (x - ceiling(midPoint) < 1) {
+    return (c(1, sampleSize))
+  } else {
+    return (c(x - ceiling(midPoint) + 1, x + floor(midPoint)))
+  }
 }
