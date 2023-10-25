@@ -1,1 +1,34 @@
+grabPeers2 <- function(subindustry = '', Industry = '', sector = '', marketCap = NULL) {
+    
+    # Calculate rank based on provided marketCap
+    if (!is.null(marketCap)) {
+        companyRank <- sum(dsESPP$MarketCap > marketCap) + 1
+    } else {
+        companyRank <- NA
+    }
 
+    if (!is.na(companyRank) && companyRank <= 20) {
+        myBnds <- calcBounds(companyRank, nrow(dsESPP))
+        dsSample <- dsESPP[myBnds[1]:myBnds[2], ]
+        dsSample <- dsSample %>% filter(MarketCap != marketCap) # Exclude the input company based on MarketCap if it's in the dataset
+    } else {
+        dsSample <- dsESPP[dsESPP$sub_industry == subindustry, ] %>% arrange(desc(MarketCap))
+
+        if (nrow(dsSample) < mySampleSize) {
+            dsSample <- dsESPP[dsESPP$Industry == Industry, ] %>% arrange(desc(MarketCap))
+        }
+
+        if (nrow(dsSample) < mySampleSize) {
+            dsSample <- dsESPP[dsESPP$sector == sector, ] %>% arrange(desc(MarketCap))
+        }
+
+        if (nrow(dsSample) < mySampleSize) {
+            print("Insufficient Peers to benchmark against!")
+        } else {
+            myBnds <- calcBounds(1, nrow(dsSample)) # Use 1 as a placeholder since it's not specific to a company
+            dsSample <- dsSample[myBnds[1]:myBnds[2], ]
+        }
+    }
+    
+    return(dsSample)
+}
