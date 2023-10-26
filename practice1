@@ -1,46 +1,8 @@
-grabPeers2 <- function(subindustry = '', Industry = '', sector = '', marketCap = NULL) {
-    
-    # Calculate rank based on provided marketCap
-    if (!is.null(marketCap)) {
-        companyRank <- sum(dsESPP$MarketCap > marketCap) + 1
-    } else {
-        companyRank <- NA
-    }
+closest_FA = potential_FAs.loc[potential_FAs['distance'].idxmin()]
+closest_city = closest_FA['City']
 
-    if (!is.na(companyRank) && companyRank <= 20) {
-        myBnds <- calc_Bounds(companyRank, nrow(dsESPP), mySampleSize)
-        dsSample <- dsESPP[myBnds[1]:myBnds[2], ]
-        dsSample <- dsSample %>% filter(MarketCap != marketCap) # Exclude the input company based on MarketCap if it's in the dataset
-    } else {
-        dsSample <- dsESPP[dsESPP$sub_industry == subindustry, ] %>% arrange(desc(MarketCap))
+# Adding boundaries to make sure we match the whole city name, not just a substring
+pattern = f"(?:^|;){closest_city}(?:;|$)"
 
-        if (nrow(dsSample) < mySampleSize) {
-            dsSample <- dsESPP[dsESPP$Industry == Industry, ] %>% arrange(desc(MarketCap))
-        }
-
-        if (nrow(dsSample) < mySampleSize) {
-            dsSample <- dsESPP[dsESPP$sector == sector, ] %>% arrange(desc(MarketCap))
-        }
-
-        if (nrow(dsSample) < mySampleSize) {
-            print("Insufficient Peers to benchmark against!")
-        } else {
-            myBnds <- calc_Bounds(1, nrow(dsSample), mySampleSize) # Use 1 as a placeholder since it's not specific to a company
-            dsSample <- dsSample[myBnds[1]:myBnds[2], ]
-        }
-    }
-    
-    return(dsSample)
-}
-
-
-calc_Bounds <- function(x, rowcnt, sampleSize = 10) {
-  midPoint <- sampleSize/2
-  if (x + floor(midPoint) > rowcnt) {
-    return (c(rowcnt - sampleSize + 1, rowcnt))
-  } else if (x - ceiling(midPoint) < 1) {
-    return (c(1, sampleSize))
-  } else {
-    return (c(x - ceiling(midPoint) + 1, x + floor(midPoint)))
-  }
-}
+# Use str.contains() to check if the closest city is in the 'Branch City' list of each potential FA
+city_FAs = potential_FAs[potential_FAs['Branch City'].str.contains(pattern, na=False)]
