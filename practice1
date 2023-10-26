@@ -1,8 +1,7 @@
-closest_FA = potential_FAs.loc[potential_FAs['distance'].idxmin()]
-closest_city = closest_FA['City']
-
-# Adding boundaries to make sure we match the whole city name, not just a substring
-pattern = f"(?:^|;){closest_city}(?:;|$)"
-
-# Use str.contains() to check if the closest city is in the 'Branch City' list of each potential FA
-city_FAs = potential_FAs[potential_FAs['Branch City'].str.contains(pattern, na=False)]
+# Filter potential FAs where 'Branch City' contains the closest city
+        potential_FAs = potential_FAs[potential_FAs['Branch City'].str.upper().str.contains(closest_city.upper())]
+        
+        # Ensure there are still potential FAs left after filtering
+        if not potential_FAs.empty:
+            # Sort potential FAs by distance, then by DT2_STRT
+            chosen_FA = potential_FAs.sort_values(by=['distance', 'Date Posted']).iloc[0]
