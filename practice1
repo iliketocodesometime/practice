@@ -1,7 +1,48 @@
-# Filter potential FAs where 'Branch City' contains the closest city
-        potential_FAs = potential_FAs[potential_FAs['Branch City'].str.upper().str.contains(closest_city.upper())]
-        
-        # Ensure there are still potential FAs left after filtering
-        if not potential_FAs.empty:
-            # Sort potential FAs by distance, then by DT2_STRT
-            chosen_FA = potential_FAs.sort_values(by=['distance', 'Date Posted']).iloc[0]
+grabPeers2 <- function(companyName = NULL, subindustry = '', Industry = '', sector = '', marketCap = NULL) {
+    
+    # If a companyName is provided, remove it from the dataset
+    if (!is.null(companyName)) {
+        dsESPP <- dsESPP %>% filter(CompanyName != companyName)
+    }
+    
+    # Calculate rank based on provided marketCap in the entire dataset
+    if (!is.null(marketCap)) {
+        companyRank <- sum(dsESPP$MarketCap > marketCap) + 1
+    } else {
+        companyRank <- NA
+    }
+
+    # Always sort dsESPP by MarketCap in descending order
+    dsESPP <- dsESPP %>% arrange(desc(MarketCap))
+    
+    if (!is.na(companyRank) && companyRank <= 20) {
+        myBnds <- calc_Bounds(companyRank, nrow(dsESPP), mySampleSize)
+        dsSample <- dsESPP[myBnds[1]:myBnds[2], ]
+    } else {
+        dsSample <- dsESPP[dsESPP$sub_industry == subindustry, ]
+
+        if (nrow(dsSample) < mySampleSize) {
+            dsSample <- dsESPP[dsESPP$Industry == Industry, ]
+        }
+
+        if (nrow(dsSample) < mySampleSize) {
+            dsSample <- dsESPP[dsESPP$sector == sector, ]
+        }
+
+        # Recompute company rank based on market cap within dsSample
+        if (!is.null(marketCap)) {
+            companyRank <- sum(dsSample$MarketCap > marketCap) + 1
+        } else {
+            companyRank <- NA
+        }
+
+        if (nrow(dsSample) < mySampleSize) {
+            print("Insufficient Peers to benchmark against!")
+        } else {
+            myBnds <- calc_Bounds(companyRank, nrow(dsSample), mySampleSize)
+            dsSample <- dsSample[myBnds[1]:myBnds[2], ]
+        }
+    }
+    
+    return(dsSample)
+}
