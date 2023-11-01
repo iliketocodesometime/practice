@@ -1,3 +1,1 @@
-# Update the 'Date Posted' for the chosen FA
-chosen_FA_index = latestAssignment_df[latestAssignment_df['FA MSID'] == chosen_FA['MSID']].index
-latestAssignment_df.at[chosen_FA_index, 'Date Posted'] = pd.Timestamp.now()
+
