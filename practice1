@@ -1,1 +1,14 @@
+breakdown = [80, 10, 10]  # Example breakdown
+assert sum(breakdown) == 100, "Breakdown percentages should sum to 100."
 
+# Number of bins
+num_bins = len(breakdown)
+
+# Equal distribution of FAs into bins
+fa_per_bin = len(fa_full_info_df) // num_bins
+fa_full_info_df['Bin'] = [(i // fa_per_bin) + 1 for i in range(len(fa_full_info_df))]
+fa_full_info_df.loc[fa_full_info_df['Bin'] > num_bins, 'Bin'] = num_bins  # Ensure that the last bin gets any overflow
+
+# Calculate the number of leads to be distributed to each bin based on the breakdown
+total_leads = len(leads_with_geo_good_df)
+max_leads_per_bin = {i: total_leads * pct / 100 for i, pct in enumerate(breakdown, start=1)}
