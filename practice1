@@ -1,63 +1,43 @@
-import pandas as pd
-from datetime import timedelta
+# Sector breakdown for each director
+sector_breakdown = data.groupby(['Director', 'IB Sector Final']).size().unstack().fillna(0)
+sector_breakdown.plot(kind='bar', stacked=True, figsize=(14, 7))
+plt.title('Sector Breakdown for Each Director')
+plt.xlabel('Director')
+plt.ylabel('Number of Clients')
+plt.legend(title='IB Sector Final')
+plt.show()
 
-# Placeholder for loading the input dataset
-# input = pd.read_csv('path_to_your_input_file.csv')
+# Potential wealth breakdown for each director
+plt.figure(figsize=(14, 7))
+sns.boxplot(x='Director', y='Potential Wealth', data=data)
+plt.title('Potential Wealth Breakdown for Each Director')
+plt.xlabel('Director')
+plt.ylabel('Potential Wealth')
+plt.xticks(rotation=90)
+plt.show()
 
-# Mock input data to demonstrate the script
-data = {
-    'dt2_report': pd.bdate_range('2023-01-01', '2024-12-31').union(
-        pd.bdate_range('2023-01-01', '2024-12-31')
-    ),
-    'business_day': list(range(1, 262)) + list(range(1, 262)),
-}
-input_df = pd.DataFrame(data)
+# Total participants with wealth for each director
+participants_breakdown = data.groupby('Director')['Total Participants with Wealth'].sum()
+participants_breakdown.plot(kind='bar', figsize=(14, 7))
+plt.title('Total Participants with Wealth for Each Director')
+plt.xlabel('Director')
+plt.ylabel('Total Participants with Wealth')
+plt.show()
 
-# Function to get the maximum business day of the same month from the previous year
-def get_max_bd_previous_year(row, df):
-    last_year = row['dt2_report'].year - 1
-    same_month_last_year = df[(df['dt2_report'].dt.year == last_year) & 
-                              (df['dt2_report'].dt.month == row['dt2_report'].month)]
-    return same_month_last_year['business_day'].max()
+# Client satisfaction status for each director
+client_satisfaction = data.groupby(['Director', 'Client Satisfaction Status (Account)']).size().unstack().fillna(0)
+client_satisfaction.plot(kind='bar', stacked=True, figsize=(14, 7))
+plt.title('Client Satisfaction Status for Each Director')
+plt.xlabel('Director')
+plt.ylabel('Number of Clients')
+plt.legend(title='Client Satisfaction Status')
+plt.show()
 
-# Filter for the most recent year and calculate the adjusted business day
-most_recent_year = input_df['dt2_report'].dt.year.max()
-recent_year_df = input_df[input_df['dt2_report'].dt.year == most_recent_year].copy()
-
-# Start with the first business day
-recent_year_df['adjusted_business_day'] = range(1, len(recent_year_df) + 1)
-
-# Adjust the business day for month ends to match the max business day of the same month last year
-for month in range(1, 13):
-    # Get the last row for the current month
-    last_day_of_month = recent_year_df[recent_year_df['dt2_report'].dt.month == month].iloc[-1]
-    # Get the max business day of the same month from the previous year
-    max_bd_previous_year = get_max_bd_previous_year(last_day_of_month, input_df)
-
-    if pd.notna(max_bd_previous_year):
-        # Adjust the business day for the last day of the month if necessary
-        if last_day_of_month['business_day'] > max_bd_previous_year:
-            recent_year_df.at[last_day_of_month.name, 'adjusted_business_day'] = max_bd_previous_year
-        # Adjust the business day for the last day of the month if necessary
-        if last_day_of_month['business_day'] < max_bd_previous_year:
-            recent_year_df.at[last_day_of_month.name, 'adjusted_business_day'] = max_bd_previous_year
-            # If it's the last day of the month and the previous max business day was higher, 
-            # increase the business days for the next month starting from max_bd_previous_year + 1
-            next_month = month % 12 + 1
-            year = last_day_of_month['dt2_report'].year if next_month != 1 else last_day_of_month['dt2_report'].year + 1
-            following_month_days = recent_year_df[(recent_year_df['dt2_report'].dt.month == next_month) & 
-                                                  (recent_year_df['dt2_report'].dt.year == year)]
-            for i, day in enumerate(following_month_days.itertuples(), start=max_bd_previous_year+1):
-                recent_year_df.at[day.Index, 'adjusted_business_day'] = i
-
-# Merge the adjusted business days back to the input dataframe
-input_df = input_df.merge(recent_year_df[['dt2_report', 'adjusted_business_day']], 
-                          on='dt2_report', 
-                          how='left')
-
-# Print out the first few rows of the dataframe to verify the results
-print(input_df[input_df['dt2_report'].dt.year == most_recent_year].head(60))
-
-# The actual dataframe will be returned for the user to save as needed
-# Placeholder for saving the adjusted dataframe (the user will need to replace this with their actual file saving)
-# input_df.to_csv('path_to_your_output_file.csv', index=False)
+# Ownership breakdown for each director
+ownership_breakdown = data.groupby(['Director', 'Ownership']).size().unstack().fillna(0)
+ownership_breakdown.plot(kind='bar', stacked=True, figsize=(14, 7))
+plt.title('Ownership Breakdown for Each Director')
+plt.xlabel('Director')
+plt.ylabel('Number of Clients')
+plt.legend(title='Ownership')
+plt.show()
